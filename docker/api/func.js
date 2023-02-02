@@ -211,16 +211,36 @@ exports.do_webhook = async( id, url, value, html, link, data ) =>
 exports.send_notify = async ( title, desp, sendkey, channel = -1, short = false)  =>
 {
     try {
-        const form = new FormData();
-        if( channel >= 0 ) form.append( 'channel',parseInt(channel));
-        if( short ) form.append( 'short',short ); 
-        form.append( 'title',title ); 
-        form.append( 'desp',desp.substring(0,10000) + "\r\n\r\n" + "来自云端@"+ ip.address() ); 
-        const response = await fetch( 'https://sctapi.ftqq.com/'+sendkey+'.send', {
-            method: 'POST', 
-            body: form
-        }  );
-
+        if(channel < 0)
+        {
+            const form = new FormData();
+            if( channel >= 0 ) form.append( 'channel',parseInt(channel));
+            if( short ) form.append( 'short',short ); 
+            form.append( 'title',title ); 
+            form.append( 'desp',desp.substring(0,10000) + "\r\n\r\n" + "来自云端@"+ ip.address() ); 
+            const response = await fetch( 'https://sctapi.ftqq.com/'+sendkey+'.send', {
+                method: 'POST', 
+                body: form
+            }  );
+        }
+        else
+        {
+            const response = await fetch("https://api.day.app/" + sendkey, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                body: JSON.stringify({
+                    'body': short,
+                    'title': title,
+                    'badge': 1,
+                    'category': 'myNotificationCategory',
+                    'sound': 'minuet.caf',
+                    'icon': 'https://day.app/assets/images/avatar.jpg',
+                    'group': 'check',
+                })
+            });
+        }
         const data = await response.text();
         return JSON.parse(data)||data;
     } catch (error) {
